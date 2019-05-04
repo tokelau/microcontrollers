@@ -110,15 +110,16 @@ main(int argc, char* argv[])
 		if ((rxbuf[rxbuf_pos - 1] == '\n' || rxbuf[rxbuf_pos - 1] == '\r') && rxbuf_pos != 0) {
 //			led.On();
 //			USART_SendData(USART1, 'A');
-			for(int i = 0; i < rxbuf_pos; i++) {
-				sscanf(rxbuf, "%d", &percent);
-
+//			for(int i = 0; i < rxbuf_pos; i++) {
+//				sscanf(rxbuf, "%d", &percent);
 //				USART_SendData(USART1, '\n');
-				while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-			}
+//				while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+//			}
+			sscanf(rxbuf, "%d", &percent);
 			percent = (int)(((double) percent) / 100 * 8);
 			sprintf(txbuf, "%d", percent);
 			USART_SendData(USART1, txbuf[0]);
+			while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 			for (int i = 0; i < 8; i++) {
 				leds[i]->Off();
 			}
