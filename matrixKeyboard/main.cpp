@@ -58,13 +58,13 @@ void clear() {
 	buffer[sizeof(buffer) - 1] = '\n';
 }
 
-int getRowNumber(int pinC) {
+int getRowNumber(int pin) {
 	for (int i = 1; i < 5; i++) {
 		for (int j = 1; j < 5; j++) {
 			GPIO_WriteBit(GPIOA, i, i == j ? Bit_RESET : Bit_SET);
 		}
 
-		if (!GPIO_ReadInputDataBit(GPIOB, pinC)) {
+		if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
 			return i;
 		}
 	}
@@ -91,7 +91,6 @@ int main(void) {
 	uint16_t pin;
 
 	while (true) {
-//		Устанавливаем HIGH на все строки.
 		GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_RESET);
 		GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_RESET);
 		GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_RESET);
@@ -105,20 +104,40 @@ int main(void) {
 				case 2:
 					pin = GPIO_Pin_14;
 					break;
-				default:
+				case 3:
 					pin = GPIO_Pin_15;
 					break;
 			}
 			if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
 				clear();
 				for (int i = 1; i < 5; i++) {
-					GPIO_WriteBit(GPIOA, GPIO_Pin_0, i == 1 ? Bit_RESET : Bit_SET);
-					GPIO_WriteBit(GPIOA, GPIO_Pin_1, i == 2 ? Bit_RESET : Bit_SET);
-					GPIO_WriteBit(GPIOA, GPIO_Pin_2, i == 3 ? Bit_RESET : Bit_SET);
-					GPIO_WriteBit(GPIOA, GPIO_Pin_3, i == 4 ? Bit_RESET : Bit_SET);
+					switch (i) {
+						case 1:
+							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_RESET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
+							break;
+						case 2:
+							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_RESET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
+							break;
+						case 3:
+							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_RESET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
+						case 4:
+							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
+							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
+					}
 
 					if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
-						sprintf(buffer, "X: %d, Y: %d\r\n", i, j);
+						sprintf(buffer, "x: %d, y: %d\r\n", i, j);
 						send(buffer, sizeof(buffer));
 						break;
 					}
