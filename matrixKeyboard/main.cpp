@@ -21,7 +21,7 @@ void delay(void) {
 	for (i = 0; i <= 0x500000; i++);
 }
 
-void usartInit(void) {
+void usartIni(void) {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
 	GPIO_InitTypeDef initStruct;
 
@@ -58,22 +58,8 @@ void clear() {
 	buffer[sizeof(buffer) - 1] = '\n';
 }
 
-int getRowNumber(int pin) {
-	for (int i = 1; i < 5; i++) {
-		for (int j = 1; j < 5; j++) {
-			GPIO_WriteBit(GPIOA, i, i == j ? Bit_RESET : Bit_SET);
-		}
-
-		if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 int main(void) {
-	usartInit();
+	usartIni();
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -88,56 +74,28 @@ int main(void) {
 	initStruct.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &initStruct);
 
-	uint16_t pin;
+	uint16_t pinCols[3] = {GPIO_Pin_13, GPIO_Pin_14, GPIO_Pin_15};
+	uint16_t pinRows[4] = {GPIO_Pin_0, GPIO_Pin_1, GPIO_Pin_2, GPIO_Pin_3};
 
 	while (true) {
+//		Устанавливаем HIGH на все строки.
 		GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_RESET);
 		GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_RESET);
 		GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_RESET);
 		GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
 
-		for (int j = 1; j < 4; j++) {
-			switch(j) {
-				case 1:
-					pin = GPIO_Pin_13;
-					break;
-				case 2:
-					pin = GPIO_Pin_14;
-					break;
-				case 3:
-					pin = GPIO_Pin_15;
-					break;
-			}
-			if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
+		for (int j = 0; j < 3; j++) {
+			if (!GPIO_ReadInputDataBit(GPIOB, pinCols[j])) {
 				clear();
-				for (int i = 1; i < 5; i++) {
-					switch (i) {
-						case 1:
-							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_RESET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
-							break;
-						case 2:
-							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_RESET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
-							break;
-						case 3:
-							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_RESET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_SET);
-						case 4:
-							GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_2, Bit_SET);
-							GPIO_WriteBit(GPIOA, GPIO_Pin_3, Bit_RESET);
-					}
+				for (int i = 0; i < 4; i++) {
+					GPIO_WriteBit(GPIOA, GPIO_Pin_0, i == 0 ? Bit_RESET : Bit_SET);
+					GPIO_WriteBit(GPIOA, GPIO_Pin_1, i == 1 ? Bit_RESET : Bit_SET);
+					GPIO_WriteBit(GPIOA, GPIO_Pin_2, i == 2 ? Bit_RESET : Bit_SET);
+					GPIO_WriteBit(GPIOA, GPIO_Pin_3, i == 3 ? Bit_RESET : Bit_SET);
 
-					if (!GPIO_ReadInputDataBit(GPIOB, pin)) {
-						sprintf(buffer, "x: %d, y: %d\r\n", i, j);
+
+					if (!GPIO_ReadInputDataBit(GPIOB, pinCols[j])) {
+						sprintf(buffer, "row: %d, col: %d\r\n", i, j);
 						send(buffer, sizeof(buffer));
 						break;
 					}
